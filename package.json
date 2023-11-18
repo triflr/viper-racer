@@ -1,7 +1,7 @@
 {
-  "name": "anybody-problem",
+  "name": "viper-racer",
   "version": "1.0.0",
-  "license": "CC-BY-NC-4.0",
+  "license": "MIT",
   "main": "index.js",
   "scripts": {
     "circom:dev": "hardhat circom --deterministic --debug --verbose",

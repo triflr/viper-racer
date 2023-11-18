@@ -66,18 +66,6 @@ module.exports = {
         // No protocol, so it defaults to groth16
       },
       {
-        name: "calculateForceMain",
-        // No protocol, so it defaults to groth16
-      },
-      {
-        name: "detectCollisionMain",
-        // No protocol, so it defaults to groth16
-      },
-      {
-        name: "forceAccumulatorMain",
-        // No protocol, so it defaults to groth16
-      },
-      {
         name: "getDistanceMain",
         // No protocol, so it defaults to groth16
       },
@@ -90,11 +78,7 @@ module.exports = {
         // No protocol, so it defaults to groth16
       },
       {
-        name: "nft",
-        // No protocol, so it defaults to groth16
-      },
-      {
-        name: "stepStateMain",
+        name: "wander",
         // No protocol, so it defaults to groth16
       },
       // {
