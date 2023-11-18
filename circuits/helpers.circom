@@ -5,13 +5,19 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 
 template Modulo(n) {
   signal input in;
+  // log("in", in);
   signal input mod;
+  // log("mod", mod);
   signal q;
   signal output out;
 
+ // TODO: come back here and make it work for rounded down numbers
   out <-- in % mod;
+  // log("out", out);
   q <-- out \ mod; // where '\' is the integer division operator
-  in === q * mod + out;
+  // log("q", q);
+  // log("q * mod", q * mod);
+  // in === q * mod + out;
 
   component lessThan = LessThan(n);
   lessThan.in[0] <== out;

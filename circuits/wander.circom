@@ -16,29 +16,29 @@ template Wander(lineLength, maxAngDiff, step) {
   signal input hash[128];
   signal input address[128];
 
+  // for (var i = 0; i < 128; i++) {
+    // log("address-i", i, address[i]);
+    // log("hash-i", i, hash[i]);
+  // }
   signal output out_x;
   signal output out_y;
   signal output out_ang;
 
   var randomOffset = 0;
   var bitsNeeded = maxBits(maxAngDiff);
-  var genRanIndex = 0;
-
   var angleDeltaBits[bitsNeeded];
 
   component asNonBits[bitsNeeded];
   for (var i = 0; i < bitsNeeded; i++) {
-    var index = (genRanIndex + step + i) % 128;
+    var index = ((step + i)  * (i + 1)) % 128;
      // the following is just grabbing the last bit to get the value mod 2
-    var asNonBit = hash[index] + address[index];
+    var asNonBit = (hash[index] + address[index]);
     asNonBits[i] = Num2Bits(2);
     asNonBits[i].in <== asNonBit;
     angleDeltaBits[i] = asNonBits[i].out[0];
   }
-
   component angleDeltaComp = Bits2Num(bitsNeeded);
   angleDeltaComp.in <== angleDeltaBits;
-
   component modulo = Modulo(252); // TODO: reduce this
   modulo.in <== angleDeltaComp.out;
   modulo.mod <== maxAngDiff;
@@ -48,18 +48,19 @@ template Wander(lineLength, maxAngDiff, step) {
   // if (angleDelta <= maxDifferenceBetweenAngle / 2) {
   // angleDelta = angleDelta * -1;
   // }
-  component lessThan = LessThan(bitsNeeded);
-  lessThan.in[0] <== modulo.out;
-  lessThan.in[1] <== maxAngDiff >> 1; // floor (div / 2)
+  // component lessThan = LessThan(bitsNeeded);  // TODO: add back when negatives are addressed
+  // lessThan.in[0] <== modulo.out;
+  // lessThan.in[1] <== maxAngDiff >> 1; // floor (div / 2)
 
-  component mux = Mux1();
-  mux.c[0] <== modulo.out;
-  mux.c[1] <== modulo.out * -1;
-  mux.s <== lessThan.out;
-  var angleDelta = mux.out;
+  // component mux = Mux1();
+  // mux.c[0] <== modulo.out;
+  // mux.c[1] <== modulo.out * -1; // TODO: offset this so it's not negative
+  // mux.s <== lessThan.out;
+  var angleDelta = modulo.out; // mux.out;
+  // log("angleDelta", angleDelta);
 
   component isEven = IsEven(252);
-  isEven.in <== mux.out;
+  isEven.in <== modulo.out; // mux.out; // TODO: change back when negative is fixed
 
   component mux2 = Mux1();
   mux2.c[0] <== 1;
@@ -67,10 +68,13 @@ template Wander(lineLength, maxAngDiff, step) {
   mux2.s <== isEven.out;
 
   var isOddAdditionalRandom = mux2.out;
+  // log("isOddAdditionalRandom", isOddAdditionalRandom);
 
   var changeByAmount = 45;
   var anglesInACircle = 360;
   var found = 0;
+  // log("found start", found);
+
   var found_x;
   var found_y;
   var found_ang;
@@ -95,9 +99,10 @@ template Wander(lineLength, maxAngDiff, step) {
     // this is diivide by 2 and Math.ceil()
     var timesTried = (i + 1) >> 1;
     var changeBy = angleDelta + (timesTried * changeByAmount) * -1 * addOrRemoves[i].out;
-    var newAngle = prevAng + (changeBy * isOddAdditionalRandom) + 360; // % 360;
-    
-    modulos[i] = Modulo(maxBits(360*2));
+    // log("changeBy", changeBy);
+    var newAngle = prevAng + (changeBy * isOddAdditionalRandom) + (360 * 2); // % 360;
+    // log("newAngle", newAngle);
+    modulos[i] = Modulo(maxBits(360 * 3));
     modulos[i].in <== newAngle;
     modulos[i].mod <== 360;
     newAngle = modulos[i].out;
@@ -110,9 +115,16 @@ template Wander(lineLength, maxAngDiff, step) {
     quinSin[i] = QuinSelector(360);
     quinSin[i].in <== returnCosSin(1);
     quinSin[i].index <== newAngle;
-
-    var potentialNewX = x + quinCos[i].out;// * lineLength;
-    var potentialNewY = y + quinSin[i].out;// * lineLength;
+    // log("newAngle", newAngle);
+    // log("x", x);
+    // log("quinCos[i].out", quinCos[i].out);
+    // log("y", y);
+    // log("quinSin[i].out", quinSin[i].out);
+    // log("lineLength", lineLength);
+    var potentialNewX = x + quinCos[i].out * lineLength / 100; // cos is increased by 10x
+    var potentialNewY = y + quinSin[i].out * lineLength / 100; // sin is increased by 10x
+    // log("potentialNewX", potentialNewX);
+    // log("potentialNewY", potentialNewY);
 
     isZeros[i] = IsZero();
     isZeros[i].in <== found;
@@ -120,12 +132,12 @@ template Wander(lineLength, maxAngDiff, step) {
 
     // found_x = stillNotFound ? potentialNewX : found_x;
     muxes[i] = MultiMux1(3);
-    muxes[i].c[0][0] <== potentialNewX;
-    muxes[i].c[0][1] <== found_x;
-    muxes[i].c[1][0] <== potentialNewY;
-    muxes[i].c[1][1] <== found_y;
-    muxes[i].c[2][0] <== newAngle;
-    muxes[i].c[2][1] <== found_ang;
+    muxes[i].c[0][0] <== found_x;
+    muxes[i].c[0][1] <-- potentialNewX;
+    muxes[i].c[1][0] <== found_y;
+    muxes[i].c[1][1] <-- potentialNewY;
+    muxes[i].c[2][0] <== found_ang;
+    muxes[i].c[2][1] <== newAngle;
 
     muxes[i].s <== stillNotFound;
     
@@ -133,12 +145,15 @@ template Wander(lineLength, maxAngDiff, step) {
     found_y = muxes[i].out[1];
     found_ang = muxes[i].out[2];
 
+    // log("found_x", found_x);
+    // log("found_y", found_y);
     // found = isOK ? 1 : found;
     isOK[i] = IsOK();
     isOK[i].x <== found_x;
     isOK[i].y <== found_y;
 
     found = isOK[i].out;
+    // log("found", found);
   }
   // found === 1;
 

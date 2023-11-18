@@ -26,7 +26,8 @@
     "hardhat": "2.12.2",
     "hardhat-circom": "git+ssh://git@github.com/okwme/hardhat-circom.git#514bf05c8aa1b5864484eb1e257c0df6053553f2",
     "hardhat-contract-sizer": "*",
-    "hardhat-gas-reporter": "*"
+    "hardhat-gas-reporter": "*",
+    "viper": "git+ssh://git@github.com/folia-app/viper.git"
   },
   "engines": {
     "node": ">=16"

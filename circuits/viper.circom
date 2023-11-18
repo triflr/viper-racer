@@ -4,12 +4,12 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 include "wander.circom";
 
 template Viper(steps, lineLength, maxAngDiff) {
+    signal input hash;
+    signal input address;
     signal input x;
     signal input y;
     signal input prevAng;
     var prevAng_ = prevAng;
-    signal input hash;
-    signal input address;
 
     signal output out_x;
     signal output out_y;
@@ -50,5 +50,5 @@ template Viper(steps, lineLength, maxAngDiff) {
     out_x <== x_;
     out_y <== y_;
 }
-
-component main = Viper(76, 100, 60);
+// 76
+component main = Viper(10, 100, 60);

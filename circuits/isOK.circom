@@ -18,10 +18,10 @@ template NotOutsideCanvas() {
   signal input x;
   signal input y;
   signal output out;
-  var decimals = 4;
+  var decimals = 0;
   var canvasSizeRaw = 1000;
   var canvasSize = canvasSizeRaw * (10 ** decimals);
-  var marginRaw = 100;
+  var marginRaw = 0;
   var margin = marginRaw * (10 ** decimals);
 
   var isOutsideCanvas = 0;
@@ -42,6 +42,11 @@ template NotOutsideCanvas() {
   component greaterThan2 = GreaterThan(bitsNeeded);
   greaterThan2.in[0] <== canvasSize - margin;
   greaterThan2.in[1] <== y;
+
+  // log("lessThan.out", lessThan.out);
+  // log("lessThan2.out", lessThan2.out);
+  // log("greaterThan.out", greaterThan.out);
+  // log("greaterThan2.out", greaterThan2.out);
   
   component multiAND = MultiAND(4);
   multiAND.in[0] <== lessThan.out;

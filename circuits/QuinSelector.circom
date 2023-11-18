@@ -23,7 +23,9 @@ template QuinSelector(choices) {
     signal output out;
     
     // Ensure that index < choices
-    component lessThan = LessThan(4);
+    // log("index", index);
+    // log("choices", choices);
+    component lessThan = LessThan(17); // max 10_000 aka 1.0000
     lessThan.in[0] <== index;
     lessThan.in[1] <== choices;
     lessThan.out === 1;

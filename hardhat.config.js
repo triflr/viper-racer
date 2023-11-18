@@ -78,7 +78,7 @@ module.exports = {
         // No protocol, so it defaults to groth16
       },
       {
-        name: "wander",
+        name: "wanderMain",
         // No protocol, so it defaults to groth16
       },
       // {
