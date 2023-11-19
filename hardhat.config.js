@@ -34,6 +34,14 @@ module.exports = {
       chainId: 12345,
       // loggingEnabled: true
     },
+    zkEVMGoerli: {
+      url: 'https://rpc.public.zkevm-test.net',
+      accounts: { mnemonic: process.env.deploymentKey },
+    },
+    zkEVM: {
+      url: 'https://zkevm-rpc.com',
+      accounts: { mnemonic: process.env.deploymentKey },
+    },
     chiliz: {
       url: "https://spicy-rpc.chiliz.com",
       accounts: { mnemonic: process.env.deploymentKey },

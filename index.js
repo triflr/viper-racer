@@ -5,6 +5,7 @@ const RacerChiliz = require("./contractMetadata/chiliz-Racer.json");
 const RacerLocalhost = require("./contractMetadata/localhost-Racer.json");
 const RacerLinea = require("./contractMetadata/linea-Racer.json");
 const RacerBaseSepolia = require("./contractMetadata/baseSepolia-Racer.json");
+const RacerzkEVMGoerli = require("./contractMetadata/zkEVMGoerli-Racer.json");
 
 module.exports = {
   Racer: {
@@ -19,8 +20,10 @@ module.exports = {
       'localhost': RacerLocalhost,
       '59140': RacerLinea,
       'linea': RacerLinea,
-      '84532': RacerBaseSepolia,
       'baseSepolia': RacerBaseSepolia,
+      '84532': RacerBaseSepolia,
+      'zkEVMGoerli': RacerzkEVMGoerli,
+      '1442': RacerzkEVMGoerli,
     },
   }
 }
