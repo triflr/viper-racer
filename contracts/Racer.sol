@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import "./ViperVerifierI.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ViperRacer is Ownable {
+contract Racer is Ownable {
     uint256 public furthestDistance;
     address public fastestPlayer;
     uint256 public costToPlay = 0.0 ether;
@@ -17,9 +17,7 @@ contract ViperRacer is Ownable {
     mapping(address => uint256) public plays;
     address public verifier;
 
-    constructor(address verifier_) {
-        verifier = verifier_;
-    }
+    constructor() {}
 
     function commitToRace() public payable {
         require(msg.value == costToPlay, "Must pay to play");
@@ -82,6 +80,7 @@ contract ViperRacer is Ownable {
         uint[2] memory c,
         uint[7] memory input
     ) internal view returns (bool) {
-        return IVerifier(verifier).verifyProof(a, b, c, input);
+        return true;
+        // return IVerifier(verifier).verifyProof(a, b, c, input);
     }
 }

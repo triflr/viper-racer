@@ -4,6 +4,8 @@
   "license": "MIT",
   "main": "index.js",
   "scripts": {
+    "deploy": "hardhat run scripts/deploy.js",
+    "chain": "ganache-cli -m 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'",
     "circom:dev": "hardhat circom --deterministic --debug --verbose",
     "circom:prod": "hardhat circom --verbose",
     "serve": "npx live-server docs",

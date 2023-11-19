@@ -69,7 +69,7 @@ describe("wanderMain circuit", () => {
     }
   })
 
-  it.only("has the correct output", async () => {
+  it("has the correct output", async () => {
 
     const viperRNG = new ViperRNG({
       hash,
@@ -97,74 +97,6 @@ describe("wanderMain circuit", () => {
     await circuit.assertOut(witness, expected);
   });
 
-  it.skip("NftVerifier.sol works", async () => {
-    // const NftVerifier = await ethers.getContractFactory("contracts/NftVerifier.sol:Verifier");
-    // const nftVerifier = await NftVerifier.deploy();
-    // await nftVerifier.deployed();
-
-    // let dataResult = await exportCallDataGroth16(
-    //   sampleInput,
-    //   "./circuits/nft.wasm",
-    //   "./circuits/nft.zkey"
-    // );
-    // let result = await nftVerifier.verifyProof(
-    //   dataResult.a,
-    //   dataResult.b,
-    //   dataResult.c,
-    //   dataResult.Input
-    // );
-    // assert.equal(result, true);
-  })
-
-
-  it.skip("nft.sol works", async () => {
-    // const NftVerifier = await ethers.getContractFactory("contracts/NftVerifier.sol:Verifier");
-    // const nftVerifier = await NftVerifier.deploy();
-    // await nftVerifier.deployed();
-
-    // const Metadata = await ethers.getContractFactory("Metadata");
-    // const metadata = await Metadata.deploy();
-    // await metadata.deployed();
-
-    // const Nft = await ethers.getContractFactory("NFT");
-    // const nft = await Nft.deploy(metadata.address, nftVerifier.address);
-    // await nft.deployed();
-
-    // console.log(`committing...`)
-    // await expect(nft.commit())
-    //   .to.not.be.reverted;
-
-    // const blockBefore = await ethers.provider.getBlock();
-    // console.log(`waiting one block`)
-    // await mine();
-    // const blockAfter = await ethers.provider.getBlock();
-
-    // // make sure block incremented by 1
-    // assert.equal(blockAfter.number, blockBefore.number + 1);
-
-    // console.log(`minting...`)
-
-    // await expect(nft.mint())
-    //   .to.not.be.reverted;
-    // block = await ethers.provider.getBlock();
-    // console.log({ block: block.number })
-
-    // const body = await nft.getBody(1);
-    // console.log({ body })
-
-    // let dataResult = await exportCallDataGroth16(
-    //   sampleInput,
-    //   "./circuits/nft.wasm",
-    //   "./circuits/nft.zkey"
-    // );
-    // let result = await nftVerifier.verifyProof(
-    //   dataResult.a,
-    //   dataResult.b,
-    //   dataResult.c,
-    //   dataResult.Input
-    // );
-    // assert.equal(result, true);
-  })
 
 
 

@@ -1,8 +1,8 @@
 <html>
 
 <head>
-  <script src="http://localhost:8081/viper.js"></script>
-  <script src="http://localhost:8081/p5.min.js"></script>
+  <script src="./viper.js"></script>
+  <script src="./p5.min.js"></script>
   <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
 
   <style>
@@ -49,15 +49,23 @@
   <div id="best-score"></div>
   <div id="hash"></div>
   <div id="address"></div>
-  <button id="play">Put in a Quarter</button>
+  <button id="play">Go Baby, Go 🚦</button>
+  <button id="pay">Put in a Quarter 🪙</button>
 </body>
 <script>
   let pause = false
   let viper;
-  document.getElementById('sketch-holder').addEventListener('click', () => {
+  document.getElementById('sketch-holder').addEventListener('click', (e) => {
+    e.preventDefault()
     tweakViper()
     pause = false
   })
+  document.getElementById('play').addEventListener('click', (e) => {
+    e.preventDefault()
+    tweakViper()
+    pause = false
+  })
+
 
   // let hash = '0x56eb92da56e5e204ee8c7abf939ed1bb4f9d3b4150cd4d54da7cb0bfb12b4201'
   // const blankHash = '0x' + `0`.repeat(64)
@@ -223,7 +231,7 @@
     }
   }
 
-  async function play(e) {
+  async function pay(e) {
     e.preventDefault();
     const contractABI = [/* ... ABI array ... */];
     const contractAddress = '0x...'; // Replace with the actual contract address
@@ -233,7 +241,7 @@
     const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
   }
-  document.getElementById('play').addEventListener('click', play)
+  document.getElementById('pay').addEventListener('click', play)
 
   setInterval(async () => {
     const newHash = await getLatestBlockHash();
