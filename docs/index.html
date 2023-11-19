@@ -1,25 +1,248 @@
 <html>
 
 <head>
-  <script defer src="./index.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.js"></script>
+  <script src="http://localhost:8081/viper.js"></script>
+  <script src="http://localhost:8081/p5.min.js"></script>
+  <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+
   <style>
     body {
       margin: 0;
       padding: 0;
     }
 
-    body main canvas {
-      border: 1px solid black;
-      cursor: crosshair;
-      height: 100vh !important;
-      width: 100vh !important;
+    html,
+    body,
+    * {
+      margin: 0px;
+      padding: 0px;
+    }
+
+    :root {
+      --canvas-size: min(1vw, 1vh);
+    }
+
+    @media (orientation: landscape) {
+      :root {
+        --canvas-size: 100vh;
+      }
+    }
+
+    @media (orientation: portrait) {
+      :root {
+        --canvas-size: 100vw;
+      }
+    }
+
+    canvas {
+      /* cursor: pointer; */
+      /* width: var(--canvas-size) !important;
+      height: var(--canvas-size) !important; */
     }
   </style>
 </head>
 
 <body>
-  <main id="main"></main>
+  <main id="sketch-holder"></main>
+  <button id="connect-wallet">Connect Wallet</button>
+  <div id="last-score"></div>
+  <div id="best-score"></div>
+  <div id="hash"></div>
+  <div id="address"></div>
+  <button id="play">Put in a Quarter</button>
 </body>
+<script>
+  let pause = false
+  let viper;
+  document.getElementById('sketch-holder').addEventListener('click', () => {
+    tweakViper()
+    pause = false
+  })
+
+  // let hash = '0x56eb92da56e5e204ee8c7abf939ed1bb4f9d3b4150cd4d54da7cb0bfb12b4201'
+  // const blankHash = '0x' + `0`.repeat(64)
+  let hash = '0x' + `00CC`.repeat(16)
+  const blankAddress = '0x' + `0`.repeat(40)
+  let address = blankAddress
+  let bestScore = 0; // 749 best possible atm
+  let lastScore = 0;
+  let connected = false
+  let web3;
+
+
+  function postTexts() {
+    document.getElementById('connect-wallet').innerHTML = connected ? 'Disconnect Wallet' : 'Connect Wallet'
+    document.getElementById('last-score').innerHTML = 'Last Score: ' + Math.floor(lastScore)
+    document.getElementById('best-score').innerHTML = 'Best Score: ' + Math.floor(bestScore)
+    document.getElementById('hash').innerHTML = 'Gloabl Entropy: ' + hash
+    document.getElementById('address').innerHTML = 'Local Entropy: ' + address
+  }
+  postTexts()
+
+  function tweakViper() {
+    viper.x = 0;
+    viper.startingX = 0;
+    viper.previousX = 0;
+    viper.y = 686 / 2
+    viper.startingY = 686 / 2
+    viper.previousY = 686 / 2
+    viper.startingAngle = 0
+    viper.previousAngle = 0
+    viper.totalLength = 0
+    viper.allLines = []
+    const viperRNG = new ViperRNG({
+      hash, address, step: 0
+    })
+    viper.wanderRNG = viperRNG
+  }
+  var s = function (p) {
+    p.preload = async () => {
+      viper = new Viper({
+        setting: "browser",
+        pattern: "random",
+        width: 1600,
+        maxNumberOfLines: 3
+      });
+
+    };
+    p.setup = async () => {
+      console.log('preload')
+      viper.setup(p);
+      await viper.preload();
+      tweakViper()
+    };
+    p.draw = async () => {
+      if (pause) return
+      // console.log('draw')
+      viper.draw();
+      if (viper.totalLength > 79) {
+        pause = true
+        lastScore = viper.x
+        if (viper.x > bestScore) {
+          bestScore = viper.x
+        }
+        postTexts()
+      }
+    }
+  };
+  new p5(s);
+
+  class ViperRNG {
+    constructor(overwriteOptions = {}) {
+      const options = {
+        hash: null,
+        address: null,
+        step: 0,
+        ...overwriteOptions
+      }
+      let { hash, address, step } = options
+      // hash must not be empty
+      if (!hash) {
+        throw new Error(`hash must be provided`)
+      }
+      // address must not be empty
+      if (!address) {
+        throw new Error(`address must be provided`)
+      }
+      // this.step must be an integer
+      if (step != Math.floor(step)) {
+        throw new Error(`step must be an integer, got ${step}`)
+      }
+      this.hash = this.strToBits(hash)
+      this.address = this.strToBits(address)
+      // for (var i = 0; i < 128; i++) {
+      //   console.log(`address-i ${i} ${this.address[i]}`)
+      //   console.log(`hash-i ${i} ${this.hash[i]}`)
+      // }
+      this.step = step
+    }
+
+    strToBits(str) {
+      const block128 = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
+      const num = BigInt(str) & block128
+      const bits = num.toString(2).padStart(128, '0').split('').map(x => parseInt(x))
+      if (bits.length != 128) {
+        throw new Error(`stringToBits: expected 128 bits, got ${bits.length}`)
+      }
+      return bits
+    }
+
+    nextInt(min, max, bitsNeeded = 6) {
+
+      const returnBits = [];
+      for (var i = 0; i < bitsNeeded; i++) {
+        var index = ((this.step + i) * (i + 1)) % 128;
+        var asNonBit = this.hash[index] + this.address[index];
+        var asBit = asNonBit % 2;
+        returnBits.unshift(asBit); // NOTE: this is weird that Bits2Num is backwards
+      }
+      this.step++;
+      const returnNum = Number(BigInt(`0b${returnBits.join("")}`));
+      return returnNum % (max - min) + min;
+    }
+  }
+
+
+  async function connectWallet(e) {
+    e.preventDefault();
+
+    if (window.ethereum) {
+      if (connected) {
+        // disconnect
+        connected = false
+        address = blankAddress
+        postTexts()
+
+      } else {
+        try {
+          // web3 = new Web3(window.ethereum);
+          await window.ethereum.enable()
+
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          connected = true
+          address = accounts[0]
+          postTexts()
+          console.log('Connected', accounts[0]);
+        } catch (error) {
+          console.error('User denied account access', error);
+        }
+      }
+    }
+  }
+  document.getElementById('connect-wallet').addEventListener('click', connectWallet)
+
+  async function getLatestBlockHash() {
+    if (window.ethereum) {
+      try {
+        const latestBlock = await window.ethereum.request({ method: 'eth_getBlockByNumber', params: ['latest', false] });
+        console.log('Latest block hash:', latestBlock.hash);
+        return latestBlock.hash;
+      } catch (error) {
+        console.error('Error fetching latest block:', error);
+      }
+    }
+  }
+
+  async function play(e) {
+    e.preventDefault();
+    const contractABI = [/* ... ABI array ... */];
+    const contractAddress = '0x...'; // Replace with the actual contract address
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+  }
+  document.getElementById('play').addEventListener('click', play)
+
+  setInterval(async () => {
+    const newHash = await getLatestBlockHash();
+    if (newHash !== hash) {
+      hash = newHash;
+      postTexts()
+    }
+  }, 5000)
+
+</script>
 
 </html>

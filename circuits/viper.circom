@@ -20,14 +20,14 @@ template Viper(steps, lineLength, maxAngDiff) {
     hashToBits.in <== hash;
     signal hash_[128];
     for (var i = 0; i < 128; i++) {
-      hash_[i] <== hashToBits.out[i];
+      hash_[127-i] <== hashToBits.out[i];
     }
 
     component addressToBits = Num2Bits(128);
     addressToBits.in <== address;
     signal address_[128];
     for (var i = 0; i < 128; i++) {
-      address_[i] <== addressToBits.out[i];
+      address_[127-i] <== addressToBits.out[i];
     }
 
     component wanders[steps];
@@ -50,5 +50,3 @@ template Viper(steps, lineLength, maxAngDiff) {
     out_x <== x_;
     out_y <== y_;
 }
-// 76
-component main = Viper(10, 100, 60);

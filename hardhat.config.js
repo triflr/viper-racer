@@ -58,27 +58,11 @@ module.exports = {
     ptau: "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_20.ptau",
     circuits: [
       {
-        name: "absoluteValueSubtraction",
-        // No protocol, so it defaults to groth16
-      },
-      {
-        name: "acceptableMarginOfError",
-        // No protocol, so it defaults to groth16
-      },
-      {
-        name: "getDistanceMain",
-        // No protocol, so it defaults to groth16
-      },
-      {
-        name: "limiterMain",
-        // No protocol, so it defaults to groth16
-      },
-      {
-        name: "lowerLimiterMain",
-        // No protocol, so it defaults to groth16
-      },
-      {
         name: "wanderMain",
+        // No protocol, so it defaults to groth16
+      },
+      {
+        name: "viperMain",
         // No protocol, so it defaults to groth16
       },
       // {

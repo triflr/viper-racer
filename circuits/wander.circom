@@ -17,8 +17,8 @@ template Wander(lineLength, maxAngDiff, step) {
   signal input address[128];
 
   // for (var i = 0; i < 128; i++) {
-    // log("address-i", i, address[i]);
-    // log("hash-i", i, hash[i]);
+  //   log("address-i", i, address[i]);
+  //   log("hash-i", i, hash[i]);
   // }
   signal output out_x;
   signal output out_y;
@@ -39,7 +39,7 @@ template Wander(lineLength, maxAngDiff, step) {
   }
   component angleDeltaComp = Bits2Num(bitsNeeded);
   angleDeltaComp.in <== angleDeltaBits;
-  component modulo = Modulo(252); // TODO: reduce this
+  component modulo = Modulo(bitsNeeded);
   modulo.in <== angleDeltaComp.out;
   modulo.mod <== maxAngDiff;
   // var angleDelta = modulo.out;
@@ -59,7 +59,7 @@ template Wander(lineLength, maxAngDiff, step) {
   var angleDelta = modulo.out; // mux.out;
   // log("angleDelta", angleDelta);
 
-  component isEven = IsEven(252);
+  component isEven = IsEven(bitsNeeded); // TODO: confirm bitsNeeded
   isEven.in <== modulo.out; // mux.out; // TODO: change back when negative is fixed
 
   component mux2 = Mux1();
@@ -99,6 +99,7 @@ template Wander(lineLength, maxAngDiff, step) {
     // this is diivide by 2 and Math.ceil()
     var timesTried = (i + 1) >> 1;
     var changeBy = angleDelta + (timesTried * changeByAmount) * -1 * addOrRemoves[i].out;
+    // log("prevAng", prevAng);
     // log("changeBy", changeBy);
     var newAngle = prevAng + (changeBy * isOddAdditionalRandom) + (360 * 2); // % 360;
     // log("newAngle", newAngle);
@@ -106,6 +107,7 @@ template Wander(lineLength, maxAngDiff, step) {
     modulos[i].in <== newAngle;
     modulos[i].mod <== 360;
     newAngle = modulos[i].out;
+    // log("newAngle", newAngle);
     
 
     quinCos[i] = QuinSelector(360);

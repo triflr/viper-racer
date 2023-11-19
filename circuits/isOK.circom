@@ -18,7 +18,7 @@ template NotOutsideCanvas() {
   signal input x;
   signal input y;
   signal output out;
-  var decimals = 0;
+  var decimals = 2;
   var canvasSizeRaw = 1000;
   var canvasSize = canvasSizeRaw * (10 ** decimals);
   var marginRaw = 0;
