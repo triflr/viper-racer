@@ -42,6 +42,10 @@ module.exports = {
       url: "https://linea-testnet.rpc.thirdweb.com",
       accounts: { mnemonic: process.env.deploymentKey },
     },
+    baseSepolia: {
+      url: "https://sepolia.base.org",
+      accounts: { mnemonic: process.env.deploymentKey },
+    },
     localhost: {
       url: "http://127.0.0.1:8545",
       chainId: 1337,
