@@ -38,8 +38,13 @@ module.exports = {
       url: "https://spicy-rpc.chiliz.com",
       accounts: { mnemonic: process.env.deploymentKey },
     },
+    linea: {
+      url: "https://linea-testnet.rpc.thirdweb.com",
+      accounts: { mnemonic: process.env.deploymentKey },
+    },
     localhost: {
       url: "http://127.0.0.1:8545",
+      chainId: 1337,
       accounts: { mnemonic: "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" }
     },
     optimistic: {

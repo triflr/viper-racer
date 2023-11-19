@@ -2,6 +2,7 @@
 const RacerABI = require("./contractMetadata/ABI-chiliz-Racer.json");
 const Racer = require("./contractMetadata/chiliz-Racer.json"); // TODO: replace with mainnet
 const RacerChiliz = require("./contractMetadata/chiliz-Racer.json");
+const RacerLocalhost = require("./contractMetadata/localhost-Racer.json");
 
 module.exports = {
   Racer: {
@@ -12,6 +13,8 @@ module.exports = {
       'mainnet': Racer,
       '88882': RacerChiliz,
       'chiliz': RacerChiliz,
+      '1337': RacerLocalhost,
+      'localhost': RacerLocalhost
     },
   }
 }

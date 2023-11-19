@@ -4,6 +4,22 @@
   <script src="./viper.js"></script>
   <script src="./p5.min.js"></script>
   <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+  <script>
+
+    fetch('./ABI-localhost-Racer.json')
+      .then(response => response.json())
+      .then(data => {
+        window.ABI = data;
+        console.log(data);
+      });
+
+    fetch('./localhost-Racer.json')
+      .then(response => response.json())
+      .then(data => {
+        window.address = data;
+        console.log(data);
+      });
+  </script>
 
   <style>
     body {
@@ -51,6 +67,7 @@
   <div id="address"></div>
   <button id="play">Go Baby, Go 🚦</button>
   <button id="pay">Put in a Quarter 🪙</button>
+  <button id="claim">Claim Winnings 💰</button>
 </body>
 <script>
   let pause = false
@@ -230,23 +247,93 @@
       }
     }
   }
+  let waitingForHash = false
+  let foundHash = false
 
   async function pay(e) {
     e.preventDefault();
-    const contractABI = [/* ... ABI array ... */];
-    const contractAddress = '0x...'; // Replace with the actual contract address
+    const contractABI = window.ABI.abi// [/* ... ABI array ... */];
+    const contractAddress = window.address.address//'0x...'; // Replace with the actual contract address
+    console.log({ contractABI })
+    console.log({ contractAddress })
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    console.log({ provider })
+    const signer = provider.getSigner();
+    console.log({ signer })
+    const contract = new ethers.Contract(contractAddress, contractABI, signer);
+    try {
+      var tx = await contract.commitToRace({});
+      waitingForHash = true;
+      console.log({ tx })
+      console.log('Successfully committed to race');
+    } catch (error) {
+      console.error('Error committing to race:', error);
+    }
+  }
+  document.getElementById('pay').addEventListener('click', pay)
 
+  async function claim(e) {
+    e.preventDefault()
+    if (foundHash) {
+      const contractABI = window.ABI.abi// [/* ... ABI array ... */];
+      const contractAddress = window.address.address//'0x...'; // Replace with the actual contract address
+      console.log({ contractABI })
+      console.log({ contractAddress })
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      console.log({ provider })
+      const signer = provider.getSigner();
+      console.log({ signer })
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+      try {
+        // uint[2] memory a,
+        // uint[2][2] memory b,
+        // uint[2] memory c,
+        // uint[7] memory input
+        const block128 = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
+        const shortHash = BigInt(hash) & block128
+        const shortSender = BigInt(address) & block128
+        console.log(shortHash.toString(10))
+        console.log(shortSender.toString(10))
+        var tx = await contract.resolveRace(["0", "0"], [["0", "0"], ["0", "0"]], ["0", "0"], [shortHash.toString(10), shortSender.toString(10), "0", "343", "0", "0", "0"]);
+        waitingForHash = true;
+        console.log({ tx })
+        console.log('Successfully committed to race');
+      } catch (error) {
+        console.error('Error committing to race:', error);
+      }
+    }
+  }
+  document.getElementById('claim').addEventListener('click', claim)
+
+
+  async function getBestScore() {
+    const contractABI = window.ABI.abi// [/* ... ABI array ... */];
+    const contractAddress = window.address.address//'0x...'; // Replace with the actual contract address
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
     const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
+    try {
+      const furthestDistance = await contract.method.furthestDistance();
+      console.log('furthestDistance:', furthestDistance);
+      return furthestDistance;
+    } catch (error) {
+      console.error('Error getting best score:', error);
+    }
   }
-  document.getElementById('pay').addEventListener('click', play)
+
+  let allTime = 0
 
   setInterval(async () => {
+
+    // const bestScore = await getBestScore();
+    // console.log({ bestScore })
+
     const newHash = await getLatestBlockHash();
-    if (newHash !== hash) {
+    if (newHash !== hash && !foundHash) {
       hash = newHash;
+      if (waitingForHash && !foundHash) {
+        foundHash = true;
+      }
       postTexts()
     }
   }, 5000)
