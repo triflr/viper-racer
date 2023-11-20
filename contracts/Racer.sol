@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 
-import "./ViperVerifierI.sol";
+import "hardhat/console.sol";
+import "./ViperMainVerifier.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Racer is Ownable {
@@ -28,6 +29,14 @@ contract Racer is Ownable {
         delete plays[msg.sender];
     }
 
+    function convertHash(bytes32 hash) public pure returns (uint) {
+        return uint(uint128(uint256(hash)));
+    }
+
+    function convertAddress(address addr) public pure returns (uint) {
+        return uint(uint128(uint160(addr)));
+    }
+
     function resolveRace(
         uint[2] memory a,
         uint[2][2] memory b,
@@ -35,30 +44,42 @@ contract Racer is Ownable {
         uint[7] memory input
     ) public {
         uint playBlock = plays[msg.sender];
-        if (playBlock > 256) {
+        if (block.number - playBlock > 256) {
+            // maybe should revert
             forfeit();
             return;
         }
-        bytes32 hash = blockhash(playBlock);
+        require(verifyProof(a, b, c, input), "Invalid proof");
+
+        uint out_x = input[0];
+        // uint out_y = input[1];
+        uint in_hash = input[2];
+        uint in_addr = input[3];
+        uint in_x = input[4];
+        uint in_y = input[5];
+        uint in_ang = input[6];
+
+        console.log(uint(startingX));
+        console.log(in_x);
+        require(uint(startingX) == in_x, "Playing with wrong startingX");
+        require(uint(startingY) == in_y, "Playing with wrong startingY");
         require(
-            uint(uint128(uint256(hash))) == input[0],
+            uint(startingAngle) == in_ang,
+            "Playing with wrong startingAngle"
+        );
+
+        bytes32 thisPlayHash = blockhash(playBlock);
+        require(
+            convertHash(thisPlayHash) == in_hash,
             "Playing with wrong hash"
         );
         require(
-            uint(uint128(uint160(msg.sender))) == input[1],
+            convertAddress(msg.sender) == in_addr,
             "Playing with wrong address"
         );
-        require(uint(startingX) == input[2], "Playing with wrong startingX");
-        require(uint(startingY) == input[3], "Playing with wrong startingY");
-        require(
-            uint(startingAngle) == input[4],
-            "Playing with wrong startingAngle"
-        );
-        require(verifyProof(a, b, c, input), "Invalid proof");
 
-        uint256 distanceX = input[5];
-        if (distanceX > furthestDistance) {
-            furthestDistance = distanceX;
+        if (out_x > furthestDistance) {
+            furthestDistance = out_x;
             fastestPlayer = msg.sender;
             uint256 amount = address(this).balance;
             (bool success, ) = msg.sender.call{value: amount}("");
@@ -80,7 +101,6 @@ contract Racer is Ownable {
         uint[2] memory c,
         uint[7] memory input
     ) internal view returns (bool) {
-        return true;
-        // return IVerifier(verifier).verifyProof(a, b, c, input);
+        return Groth16Verifier(verifier).verifyProof(a, b, c, input);
     }
 }

@@ -79,6 +79,16 @@ const deployContracts = async () => {
   var racerAddress = racer.address;
   log("Racer Deployed at " + String(racerAddress));
 
+  // deploy Verifier
+  const Verifier = await hre.ethers.getContractFactory("contracts/ViperMainVerifier.sol:Groth16Verifier");
+  const verifier = await Verifier.deploy();
+  await verifier.deployed();
+  var verifierAddress = verifier.address;
+  log("Verifier Deployed at " + String(verifierAddress));
+
+  await racer.setVerifier(verifierAddress);
+  log("Verifier Set");
+
   // verify contract if network ID is goerli or sepolia
   if (networkinfo["chainId"] == 5 || networkinfo["chainId"] == 1 || networkinfo["chainId"] == 11155111) {
     if (blocksToWaitBeforeVerify > 0) {
@@ -96,9 +106,19 @@ const deployContracts = async () => {
       log({ e })
     }
 
+    log("Verifying Verifier Contract");
+    try {
+      await hre.run("verify:verify", {
+        address: verifierAddress,
+        constructorArguments: [],
+      });
+    } catch (e) {
+      log({ e })
+    }
+
   }
 
-  return { racer };
+  return { racer, verifier };
 };
 
 const log = (message) => {

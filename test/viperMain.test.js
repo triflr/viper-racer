@@ -3,6 +3,7 @@
 const hre = require("hardhat");
 const { ethers } = require("hardhat");
 const { exportCallDataGroth16 } = require("../utils/utils");
+const { deployContracts } = require("../scripts/utils.js");
 const { mine } = require("@nomicfoundation/hardhat-network-helpers");
 
 const { ViperRNG } = require('../utils/viperRNG.js');
@@ -10,7 +11,7 @@ const { assert, expect } = require("chai");
 const { Viper } = require('viper')
 
 const maxSize = 1000;
-const steps = 25;
+const steps = 2;
 
 describe("viperMain circuit", () => {
   let circuit;
@@ -22,7 +23,6 @@ describe("viperMain circuit", () => {
   const vRNG = new ViperRNG({
     hash, address
   })
-
 
   const sampleInput = {
     "x": "0",
@@ -40,7 +40,7 @@ describe("viperMain circuit", () => {
     circuit = await hre.circuitTest.setup("viperMain");
   });
 
-  it.only("produces a witness with valid constraints", async () => {
+  it("produces a witness with valid constraints", async () => {
     const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
     console.log(`${witness.length} constraints`)
     await circuit.checkConstraints(witness);
@@ -59,15 +59,12 @@ describe("viperMain circuit", () => {
     // assert.propertyVal(witness, "main.out", "1");
   });
 
-
-  it("has the correct output", async () => {
-
+  async function runViper(steps, hash, address) {
     const viperRNG = new ViperRNG({
       hash,
       address,
       step: 0
     })
-
     const viper = new Viper({
       setting: "server"
     })
@@ -92,6 +89,11 @@ describe("viperMain circuit", () => {
       console.log({ x, y, angle })
       expected = { out_x: x, out_y: y };
     }
+    return expected
+  }
+
+  it("has the correct output", async () => {
+    const expected = await runViper(steps, hash, address)
     console.log({ expected })
     const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
     await circuit.assertOut(witness, expected);
@@ -117,53 +119,58 @@ describe("viperMain circuit", () => {
   })
 
 
-  it.skip("nft.sol works", async () => {
-    // const NftVerifier = await ethers.getContractFactory("contracts/NftVerifier.sol:Verifier");
-    // const nftVerifier = await NftVerifier.deploy();
-    // await nftVerifier.deployed();
+  it.only("racer.sol works", async () => {
+    const { racer } = await deployContracts();
+    const [owner] = await hre.ethers.getSigners();
+    const value = await racer.costToPlay()
+    // value should be 0
+    assert.equal(value, 0)
+    const tx = await racer.commitToRace({ value })
+    expect(tx).to.not.be.reverted;
+    await tx.wait()
+    // console.log({ tx })
+    const betBlock = await racer.plays(owner.address)
+    // console.log({ betBlock })
+    expect(betBlock).to.equal(tx.blockNumber);
 
-    // const Metadata = await ethers.getContractFactory("Metadata");
-    // const metadata = await Metadata.deploy();
-    // await metadata.deployed();
+    const blockHash = tx.blockHash
+    // console.log({ blockHash })
 
-    // const Nft = await ethers.getContractFactory("NFT");
-    // const nft = await Nft.deploy(metadata.address, nftVerifier.address);
-    // await nft.deployed();
+    const blockHash128 = BigInt(blockHash) & block128
+    const addresss128 = BigInt(owner.address) & block128
 
-    // console.log(`committing...`)
-    // await expect(nft.commit())
-    //   .to.not.be.reverted;
+    sampleInput.hash = blockHash128.toString(10)
+    sampleInput.address = addresss128.toString(10)
+    // console.log({ sampleInput })
 
-    // const blockBefore = await ethers.provider.getBlock();
-    // console.log(`waiting one block`)
-    // await mine();
-    // const blockAfter = await ethers.provider.getBlock();
+    const expected = await runViper(steps, blockHash128.toString(10), addresss128.toString(10))
+    const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
+    await circuit.assertOut(witness, expected);
 
-    // // make sure block incremented by 1
-    // assert.equal(blockAfter.number, blockBefore.number + 1);
+    let dataResult = await exportCallDataGroth16(
+      sampleInput,
+      "./circuits/viperMain.wasm",
+      "./circuits/viperMain.zkey"
+    );
+    // console.log({ dataResult })
 
-    // console.log(`minting...`)
+    let tx2 = await racer.resolveRace(
+      dataResult.a,
+      dataResult.b,
+      dataResult.c,
+      dataResult.Input
+    );
+    expect(tx2).to.not.be.reverted;
+    await tx2.wait()
+    // console.log({ tx2 })
 
-    // await expect(nft.mint())
-    //   .to.not.be.reverted;
-    // block = await ethers.provider.getBlock();
-    // console.log({ block: block.number })
+    const furthestDistance = await racer.furthestDistance()
+    // console.log({ furthestDistance })
+    expect(furthestDistance).to.equal(expected.out_x.toString())
 
-    // const body = await nft.getBody(1);
-    // console.log({ body })
-
-    // let dataResult = await exportCallDataGroth16(
-    //   sampleInput,
-    //   "./circuits/nft.wasm",
-    //   "./circuits/nft.zkey"
-    // );
-    // let result = await nftVerifier.verifyProof(
-    //   dataResult.a,
-    //   dataResult.b,
-    //   dataResult.c,
-    //   dataResult.Input
-    // );
-    // assert.equal(result, true);
+    const fastestPlayer = await racer.fastestPlayer()
+    // console.log({ fastestPlayer })
+    expect(fastestPlayer).to.equal(owner.address)
   })
 
 
